@@ -31,7 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define BUTTON_DEBOUNCE_DELAY 50
+#define DOUBLE_PRESS_MAX_DELAY 200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -41,7 +42,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
-
+volatile int timer = 0;
+volatile uint32_t last_button_press_tick = 0;
+volatile uint8_t button_press_count = 0;
+volatile uint8_t timer_started = 0;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -95,18 +99,49 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
-    /* USER CODE END WHILE */
-	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) // Button is pressed when pin is LOW
-	{
+    {
+      /* USER CODE END WHILE */
+	  /*
+		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) // Button is pressed when pin is LOW
+		{
 
-	// Toggle the LED (assuming the LED is connected to PA5)
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		// Toggle the LED (assuming the LED is connected to PA5)
+		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-	// Add a small delay to debounce the button press and to see the LED blink
-	HAL_Delay(200);
-	}
-    /* USER CODE BEGIN 3 */
+		// Add a small delay to debounce the button press and to see the LED blink
+		HAL_Delay(200);
+		}
+	   */
+	  if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
+	  {
+		timer++;
+	  }
+	  if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
+	  {
+		timer_started++;
+	  }
+
+	  if (timer_started && timer > 0)
+	  {
+		  HAL_Delay(1000); // Tick the timer down every second
+		  timer--;
+	  }
+	  else if (timer == 0 && timer_started)
+	  {
+	      // Timer has finished, blink the LED non-stop
+		  while (1)
+		  {
+			  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+			  HAL_Delay(100); // LED on for 100ms
+		  }
+	  }
+
+	 // Add a small delay to debounce the button press and to see the LED blink
+  	//HAL_Delay(200);
+
+      /* USER CODE BEGIN 3 */
+    //}
+    /* USER CODE END 3 */
   }
   /* USER CODE END 3 */
 }
