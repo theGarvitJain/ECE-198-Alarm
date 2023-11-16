@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include <stdbool.h>
+
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -32,7 +34,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define BUTTON_DEBOUNCE_DELAY 50
-#define DOUBLE_PRESS_MAX_DELAY 200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,10 +43,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
-volatile int timer = 0;
-volatile uint32_t last_button_press_tick = 0;
-volatile uint8_t button_press_count = 0;
-volatile uint8_t timer_started = 0;
+int timer = 0;
+bool timer_started = false;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -98,6 +97,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  timer = 3;
   while (1)
     {
       /* USER CODE END WHILE */
@@ -109,16 +109,18 @@ int main(void)
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
 		// Add a small delay to debounce the button press and to see the LED blink
-		HAL_Delay(200);
+		HAL_Delay(10);
 		}
 	   */
+	  /*
 	  if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
 	  {
 		timer++;
 	  }
-	  if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == GPIO_PIN_RESET)
+	  */
+	  if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
 	  {
-		timer_started++;
+		timer_started = true;
 	  }
 
 	  if (timer_started && timer > 0)
@@ -135,6 +137,7 @@ int main(void)
 			  HAL_Delay(100); // LED on for 100ms
 		  }
 	  }
+
 
 	 // Add a small delay to debounce the button press and to see the LED blink
   	//HAL_Delay(200);
