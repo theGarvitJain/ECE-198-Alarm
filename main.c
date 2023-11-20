@@ -18,8 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdbool.h>
-
+#define DEBOUNCE_DELAY 50 // 50 milliseconds
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -33,7 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUTTON_DEBOUNCE_DELAY 50
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,8 +42,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
-int timer = 0;
-bool timer_started = false;
+uint32_t lastDebounceTime = 0;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -97,56 +96,37 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  timer = 3;
   while (1)
     {
-      /* USER CODE END WHILE */
 	  /*
-		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) // Button is pressed when pin is LOW
-		{
-
-		// Toggle the LED (assuming the LED is connected to PA5)
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-
-		// Add a small delay to debounce the button press and to see the LED blink
-		HAL_Delay(10);
-		}
-	   */
-	  /*
+	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6) == GPIO_PIN_RESET)
+	  {
+		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		  HAL_Delay(100);
+	  }
 	  if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
 	  {
-		timer++;
+		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		  HAL_Delay(100);
 	  }
 	  */
-	  if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
-	  {
-		timer_started = true;
-	  }
 
-	  if (timer_started && timer > 0)
-	  {
-		  HAL_Delay(1000); // Tick the timer down every second
-		  timer--;
-	  }
-	  else if (timer == 0 && timer_started)
-	  {
-	      // Timer has finished, blink the LED non-stop
-		  while (1)
-		  {
-			  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-			  HAL_Delay(100); // LED on for 100ms
-		  }
-	  }
+	  uint32_t currentMillis = HAL_GetTick();
+	      if ((currentMillis - lastDebounceTime) > DEBOUNCE_DELAY)
+	      {
+	          if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6) == GPIO_PIN_RESET)
+	          {
+	              lastDebounceTime = currentMillis;
+	              HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+	          }
+	          if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
+	          {
+	              lastDebounceTime = currentMillis;
+	              HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+	          }
 
-
-	 // Add a small delay to debounce the button press and to see the LED blink
-  	//HAL_Delay(200);
-
-      /* USER CODE BEGIN 3 */
-    //}
-    /* USER CODE END 3 */
-  }
-  /* USER CODE END 3 */
+	      }
+    }
 }
 
 /**
@@ -246,7 +226,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5|GPIO_PIN_8, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PC13 */
   GPIO_InitStruct.Pin = GPIO_PIN_13;
@@ -254,11 +234,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  /*Configure GPIO pins : PA5 PA8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
