@@ -25,7 +25,7 @@ int main(void) {
     if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6) == GPIO_PIN_RESET) {
       HAL_Delay(50); // Debounce delay
       if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6) == GPIO_PIN_RESET) {
-        HAL_Delay(10000); // Increment timer by 1 second
+        HAL_Delay(10100); // Increment timer by 1 second
         timerValue++;
       }
     }
