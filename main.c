@@ -1,11 +1,11 @@
 #include "stm32f4xx_hal.h"
 
-TIM_HandleTypeDef htim3; // Timer handle
+// TIM_HandleTypeDef htim3; // Timer handle
 GPIO_InitTypeDef GPIO_InitStruct;
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_TIM3_Init(void);
+//static void MX_TIM3_Init(void);
 /*
 DO NOT DELETE THIS COMMENT
 PINC13 -> BOARD BUTTON
@@ -16,7 +16,6 @@ int main(void) {
   HAL_Init();
   SystemClock_Config();
   MX_GPIO_Init();
-  MX_TIM3_Init();
 
   uint8_t timerStarted = 0;
   uint32_t timerValue = 0;
@@ -26,7 +25,7 @@ int main(void) {
     if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6) == GPIO_PIN_RESET) {
       HAL_Delay(50); // Debounce delay
       if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6) == GPIO_PIN_RESET) {
-        HAL_Delay(1000); // Increment timer by 1 second
+        HAL_Delay(10000); // Increment timer by 1 second
         timerValue++;
       }
     }
@@ -34,7 +33,11 @@ int main(void) {
     // Check if the button connected to PIN C13 is pressed to start the timer
     if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET && !timerStarted) {
       timerStarted = 1;
-      HAL_TIM_Base_Start_IT(&htim3); // Start the timer
+    }
+
+    if ((timerValue != 0) && timerStarted){
+        HAL_Delay(1000); // Increment timer by 1 second
+        timerValue--;
     }
 
     // Check if the timer has reached the desired value
@@ -42,7 +45,6 @@ int main(void) {
       // Activate the speaker connected to PIN A8
       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
 
-      // You may need to add a delay or beep sound here based on your requirements
     }
   }
 }
@@ -135,29 +137,4 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-}
-
-static void MX_TIM3_Init(void) {
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 83999;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 1;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  if (HAL_TIM_Base_Init(&htim3) != HAL_OK) {
-    Error_Handler();
-  }
-
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK) {
-    Error_Handler();
-  }
-
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK) {
-    Error_Handler();
-  }
 }
